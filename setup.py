@@ -8,7 +8,7 @@ MINIMAL_PY_VERSION_STR = '.'.join(map(str, MINIMAL_PY_VERSION))
 if version_info < MINIMAL_PY_VERSION:
     raise RuntimeError('hors works only with Python {}+'.format(MINIMAL_PY_VERSION_STR))
 
-with open('README.md', 'r') as f:
+with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 setup(
     name='hors',
