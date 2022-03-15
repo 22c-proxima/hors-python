@@ -10,3 +10,8 @@
 ```bash
 python -m pip install git+https://github.com/22c-proxima/hors-python
 ```
+
+## Тестирование
+```bash
+python3 -m unittest discover tests
+```
