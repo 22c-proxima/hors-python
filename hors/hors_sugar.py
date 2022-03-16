@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Optional
 from re import sub
 
+from .models.hors_parse_result import HorsParseResult
 from .hors_text_parser import parse
 
 
@@ -35,12 +36,13 @@ def preprocess_today(phrase: str) -> str:
     return phrase
 
 
-def process_phrase(phrase: str, now: Optional[datetime] = None) -> Dict[str, Any]:
+def process_phrase(phrase: str, now: Optional[datetime] = None) -> HorsParseResult:
     phrase = preprocess(phrase)
-    hors_result = parse(phrase, now or datetime.now())
+    now = now or datetime.now()
 
+    hors_result = parse(phrase, now)
     if not hors_result.dates:
         phrase = preprocess_today(phrase)
-        hors_result = parse(phrase)
+        hors_result = parse(phrase, now)
 
-    return hors_result.to_dict()
+    return hors_result
