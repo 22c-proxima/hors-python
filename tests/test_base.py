@@ -7,6 +7,10 @@ from hors.models.parser_models import DateTimeTokenType
 
 class BaseHorsTests(unittest.TestCase):
 
+    def test_no_dates(self):
+        result = process_phrase('в день, какой неведомо, в никаком году')
+        self.assertEqual(0, len(result.dates))
+
     def test_january(self):
         result = process_phrase('10 января событие', datetime(2019, 10, 13))
         self.assertEqual(1, len(result.dates))
