@@ -5,21 +5,6 @@ from re import sub
 from .hors_text_parser import parse
 
 
-# 12 to 24
-RX_12_24 = r'с (\d+) до (\d+)'
-
-def replacer_12_24(matcher):
-    s_from, s_to = matcher.groups()
-    i_from, i_to = int(s_from), int(s_to)
-    if i_from > i_to:
-        i_to += 12
-    return f'с { i_from } до { i_to }'
-
-def replace_12_24(phrase: str) -> str:
-    return sub(RX_12_24, replacer_12_24, phrase)
-# end of 12 to 24
-
-
 def preprocess(phrase: str) -> str:
     # change forms
     phrase = phrase.replace('часок', 'час')
@@ -41,7 +26,7 @@ def preprocess(phrase: str) -> str:
     phrase = phrase.replace('получас', '30 минут')
     phrase = sub(r'(\d+) с половиной часа', r'\1 часа 30 минут', phrase)
 
-    return replace_12_24(phrase)
+    return phrase
 
 
 def preprocess_today(phrase: str) -> str:

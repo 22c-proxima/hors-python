@@ -134,6 +134,8 @@ def create_date_period(match: Match, data: DatesRawData, now: datetime, final_pe
                 date_to = date_to.replace(month=date_to.month + 1)
             elif resolution == FixPeriod.MONTH:
                 date_to = date_to.replace(year=date_to.year + 1)
+            else:
+                date_to = date_to.replace(hour=date_to.hour + 12)
 
         date_to_save = DateTimeToken()
         date_to_save.date_from = from_token.date_from
