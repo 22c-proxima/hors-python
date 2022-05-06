@@ -1,6 +1,7 @@
-venv
-build
-__pycache__
-test.ipynb
+venv/
+build/
+dist/
+*.egg-info/
+__pycache__/
 
-*.egg-info
+test.ipynb
