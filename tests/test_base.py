@@ -306,6 +306,21 @@ class BaseHorsTests(unittest.TestCase):
         self.assertEqual(14, date.date_from.day)
         self.assertEqual(14, date.date_to.day)
 
+    def test_from_to_reversed(self):
+        result = process_phrase('с 2 до 5', datetime(2019, 10, 13))
+        self.assertEqual(1, len(result.dates))
+
+        date = result.dates[0]
+        self.assertEqual(DateTimeTokenType.PERIOD, date.type)
+        date_from = date.date_from
+        date_to = date.date_to
+        self.assertEqual(14, date_from.hour)
+        self.assertEqual(17, date_to.hour)
+        self.assertEqual(13, date_from.day)
+        self.assertEqual(13, date_to.day)
+
+# class BaseHorsTests(unittest.TestCase):
+
 
 if __name__ == '__main__':
     unittest.main()
