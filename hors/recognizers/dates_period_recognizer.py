@@ -1,5 +1,4 @@
 from datetime import datetime
-from re import Match
 
 from ..dict import Keywords
 from ..models import AbstractPeriod, DatesRawData
@@ -11,7 +10,7 @@ from .recognizer import Recognizer
 class DatesPeriodRecognizer(Recognizer):
     regex_pattern = r'f?(0)[ot]0(M|#)'
 
-    def parse_match(self, data: DatesRawData, match: Match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
         month_fixed = False
         m_str = data.tokens[match.start(2)].value
         month = ParserUtils.find_index(m_str, Keywords.months()) + 1

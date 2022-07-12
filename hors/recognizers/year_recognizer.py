@@ -1,5 +1,4 @@
 from datetime import datetime
-from re import Match
 
 from .recognizer import Recognizer
 from ..models import AbstractPeriod, DatesRawData
@@ -11,7 +10,7 @@ from .recognizer import Recognizer
 class YearRecognizer(Recognizer):
     regex_pattern = r'(1)Y?|(0)Y'
 
-    def parse_match(self, data: DatesRawData, match: Match, _) -> bool:
+    def parse_match(self, data: DatesRawData, match, _) -> bool:
         s, e = match.span()
         try:
             n = int(data.tokens[s].value)

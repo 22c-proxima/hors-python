@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from re import Match
 
 from .recognizer import Recognizer
 from ..dict import Keywords
@@ -12,7 +11,7 @@ from .recognizer import Recognizer
 class DayOfWeekRecognizer(Recognizer):
     regex_pattern = r'([usxy])?(D)'
 
-    def parse_match(self, data: DatesRawData, match: Match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
         date = AbstractPeriod()
         day_of_week = ParserUtils.find_index(data.tokens[match.start(2)].value, Keywords.days_of_week()) + 1
         now_day_of_week = now.weekday() + 1

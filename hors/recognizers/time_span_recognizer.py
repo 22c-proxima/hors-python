@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from re import Match
 
 from .recognizer import Recognizer
 from ..models import AbstractPeriod, DatesRawData
@@ -10,7 +9,7 @@ from .recognizer import Recognizer
 class TimeSpanRecognizer(Recognizer):
     regex_pattern = r'(i)?((0?[Ymwdhe]N?)+)([bl])?'
 
-    def parse_match(self, data: DatesRawData, match: Match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
         if (match.group(1) is None) != (match.group(4) is None):  # ибо приоритет is ниже =(
             letters = list(match.group(2))
             last_number = 1

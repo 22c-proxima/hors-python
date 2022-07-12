@@ -1,5 +1,4 @@
 from datetime import timedelta
-from re import Match
 
 from .recognizer import Recognizer
 from ..models import AbstractPeriod, DatesRawData
@@ -10,7 +9,7 @@ from .recognizer import Recognizer
 class PartOfDayRecognizer(Recognizer):
     regex_pattern = r'(@)?f?([ravgdn])f?(@)?'
 
-    def parse_match(self, data: DatesRawData, match: Match, _) -> bool:
+    def parse_match(self, data: DatesRawData, match, _) -> bool:
         if (match.group(1) is not None) or (match.group(3) is not None):
             hours = 0
             m = match.group(2)

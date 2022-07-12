@@ -1,5 +1,4 @@
 from datetime import datetime
-from re import Match
 
 from .recognizer import Recognizer
 from ..dict import Keywords
@@ -12,7 +11,7 @@ from .recognizer import Recognizer
 class MonthRecognizer(Recognizer):
     regex_pattern = r'([usxy])?M'
 
-    def parse_match(self, data: DatesRawData, match: Match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
         year = now.year
         year_fixed = False
         s, e = match.span()
