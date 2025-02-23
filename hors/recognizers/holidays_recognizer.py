@@ -1,5 +1,3 @@
-from re import Match
-
 from .recognizer import Recognizer
 from ..dict import Keywords, Morph, LemmaSearchOptions
 from ..models import DatesRawData, TextToken
@@ -9,7 +7,7 @@ from .recognizer import Recognizer
 class HolidaysRecognizer(Recognizer):
     regex_pattern = r'W'
 
-    def parse_match(self, data: DatesRawData, match: Match, _) -> bool:
+    def parse_match(self, data: DatesRawData, match, _) -> bool:
         s, _ = match.span()
         token = data.tokens[s]
         data.remove_range(s, 1)

@@ -1,6 +1,6 @@
 from typing import List, Tuple, Set
 from datetime import datetime, timedelta
-from re import compile, Match
+from re import compile
 from random import randint
 from sys import maxsize
 
@@ -102,7 +102,7 @@ def take_from_adjacent_i(data: DatesRawData, first_index: int, second_index: int
     return (data.dates[first_index], data.dates[second_index])
 
 
-def take_from_adjacent(match: Match, data: DatesRawData, _, is_linked: bool) -> bool:
+def take_from_adjacent(match, data: DatesRawData, _, is_linked: bool) -> bool:
     take_from_adjacent_i(data, match.start(2), match.start(5), is_linked)
     return False
 
@@ -117,7 +117,7 @@ def fix_indexes(final_periods: List[DateTimeToken], split_tokens: ITuplesList) -
                 period.end += item2 - 1
 
 
-def create_date_period(match: Match, data: DatesRawData, now: datetime, final_periods: List[DateTimeToken]) -> bool:
+def create_date_period(match, data: DatesRawData, now: datetime, final_periods: List[DateTimeToken]) -> bool:
     if match.group(3) is not None and match.group(4) is not None:
         from_date, to_date = take_from_adjacent_i(data, match.start(3), match.start(4), True)
         from_token = convert_to_token(from_date, now)
@@ -160,10 +160,10 @@ def create_date_period(match: Match, data: DatesRawData, now: datetime, final_pe
         data.dates = data.dates[:s + 1] + data.dates[e:]
 
     return True
-# def create_date_period(match: Match, data: DatesRawData, now: datetime, final_periods: List[DateTimeToken]) -> bool:
+# def create_date_period(match, data: DatesRawData, now: datetime, final_periods: List[DateTimeToken]) -> bool:
 
 
-def collapse_dates(match: Match, data: DatesRawData, _, is_linked: bool) -> bool:
+def collapse_dates(match, data: DatesRawData, _, is_linked: bool) -> bool:
     first_date = data.dates[match.start(2)]
     second_date = data.dates[match.start(5)]
     if not AbstractPeriod.can_collapse(first_date, second_date):
@@ -180,7 +180,7 @@ def collapse_dates(match: Match, data: DatesRawData, _, is_linked: bool) -> bool
     return True
 
 
-def collapse_closest(match: Match, data: DatesRawData, _, is_linked: bool) -> bool:
+def collapse_closest(match, data: DatesRawData, _, is_linked: bool) -> bool:
     first_date = data.dates[match.start(1)]
     second_date = data.dates[match.start(2)]
     if AbstractPeriod.can_collapse(first_date, second_date):

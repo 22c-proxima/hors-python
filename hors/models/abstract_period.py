@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime, timedelta
 from copy import deepcopy
 
@@ -54,7 +52,7 @@ class AbstractPeriod(IHasEdges):
                 return
             self.fix(to_fix)
 
-    def copy(self) -> AbstractPeriod:
+    def copy(self):
         return deepcopy(self)
 
     def is_fixed(self, period: FixPeriod) -> bool:
@@ -87,13 +85,13 @@ class AbstractPeriod(IHasEdges):
         return current + timedelta(days=diff)
 
     @staticmethod
-    def can_collapse(base: AbstractPeriod, cover: AbstractPeriod) -> bool:
+    def can_collapse(base, cover) -> bool:
         if base.fixed & cover.fixed != 0:
             return False
         return base.span_direction != -cover.span_direction or base.span_direction == 0
 
     @staticmethod
-    def collapse_two(base: AbstractPeriod, cover: AbstractPeriod, is_linked: bool) -> bool:
+    def collapse_two(base, cover, is_linked: bool) -> bool:
         if not AbstractPeriod.can_collapse(base, cover):
             return False
 

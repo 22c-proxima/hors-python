@@ -1,0 +1,62 @@
+name: Unittests
+
+on: [push, pull_request]
+
+jobs:
+  test-old-linux:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: ["3.6.15", "3.8.16"]
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+    - name: Analysing the code with pylint
+      run: |
+        python -m unittest discover tests
+
+  test-actual-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8.16", "3.10.16", "3.12.9", "3.13.2"]
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+    - name: Analysing the code with pylint
+      run: |
+        python -m unittest discover tests
+
+  test-actual-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ["3.6.8", "3.8.10", "3.10.11", "3.12.9", "3.13.2"]
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+    - name: Analysing the code with pylint
+      run: |
+        python -m unittest discover tests
+      

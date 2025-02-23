@@ -1,6 +1,5 @@
 from typing import List
 from datetime import datetime
-from re import Match
 
 from .recognizer import Recognizer
 from ..dict import Keywords
@@ -13,7 +12,7 @@ from .recognizer import Recognizer
 class DaysMonthRecognizer(Recognizer):
     regex_pattern = r'((0N?)+)(M|#)'
 
-    def parse_match(self, data: DatesRawData, match: Match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
         dates: List[AbstractPeriod] = []
         month_fixed = False
         s, e = match.span()

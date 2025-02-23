@@ -1,5 +1,3 @@
-from __future__ import annotations  # для 85-ой строки
-
 from typing import Dict, Any
 from datetime import datetime, timedelta
 from enum import Enum, auto
@@ -80,7 +78,7 @@ class DateTimeToken(IHasEdges):
             'end': self.end
         }
 
-    def overlapping_with(self, other: DateTimeToken) -> bool:
+    def overlapping_with(self, other) -> bool:
         start_between = self.start <= other.start <= self.end
         end_between = self.start <= other.end <= self.end
         return start_between or end_between
