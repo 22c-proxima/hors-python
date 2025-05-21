@@ -28,3 +28,20 @@ recognizers: List[Recognizer] = [
     TimeRecognizer(),
     PartOfDayRecognizer()
 ]
+
+
+__all__ = [
+    'recognizers',
+    'Recognizer',
+    'HolidaysRecognizer',
+    'DatesPeriodRecognizer',
+    'DaysMonthRecognizer',
+    'MonthRecognizer',
+    'RelativeDayRecognizer',
+    'TimeSpanRecognizer',
+    'YearRecognizer',
+    'RelativeDateRecognizer',
+    'DayOfWeekRecognizer',
+    'TimeRecognizer',
+    'PartOfDayRecognizer',
+]
