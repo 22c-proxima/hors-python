@@ -1,3 +1,7 @@
+"""
+Recognizer for duration phrases ('через 2 дня', 'час назад').
+"""
+
 from datetime import datetime, timedelta
 
 from .recognizer import Recognizer
@@ -7,9 +11,28 @@ from .recognizer import Recognizer
 
 
 class TimeSpanRecognizer(Recognizer):
+    """
+    Recognizes duration phrases: 'через 2 дня', 'спустя час', '3 недели назад'
+    (pattern (i)?((0?[Ymwdhe]N?)+)([bl])?).
+
+    The phrase must contain exactly one of the prefix 'через' ('i') or the postfix
+    'назад'/'спустя' ('b'/'l'); a bare duration without either is rejected.
+    """
     regex_pattern = r'(i)?((0?[Ymwdhe]N?)+)([bl])?'
 
     def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+        """
+        Build a span period from a sequence of number + period-word pairs.
+
+        The offset starts at `now` and each unit shifts it forward (or backward for
+        'назад'): 'Y' years, 'm' months, 'w' weeks, 'd' days, 'h' hours, 'e' minutes;
+        the fix level tightens as units get smaller (MONTH -> WEEK -> DAY -> TIME).
+        The resulting period carries span = offset - now and its date is the end of
+        the span; all matched slots are replaced by it.
+
+        Returns:
+            True when exactly one of 'через' / postfix is present, otherwise False.
+        """
         if (match.group(1) is None) != (match.group(4) is None):  # ибо приоритет is ниже =(
             letters = list(match.group(2))
             last_number = 1

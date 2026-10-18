@@ -1,3 +1,7 @@
+"""
+Recognizer for part-of-day words adjacent to a date ('сегодня вечером').
+"""
+
 from datetime import timedelta
 
 from .recognizer import Recognizer
@@ -7,9 +11,27 @@ from .recognizer import Recognizer
 
 
 class PartOfDayRecognizer(Recognizer):
+    """
+    Recognizes part-of-day words adjacent to a date (pattern (@)?f?([ravgdn])f?(@)?):
+    'утром', 'днём', 'полднем', 'вечером', 'ночью' — e.g. 'сегодня вечером'.
+
+    The word must touch an already matched date ('@') on either side, otherwise
+    the match is rejected.
+    """
     regex_pattern = r'(@)?f?([ravgdn])f?(@)?'
 
     def parse_match(self, data: DatesRawData, match, _) -> bool:
+        """
+        Pin a part-of-day word to a representative hour of the day.
+
+        'r' (утро) -> 09:00, 'a'/'d'/'n' (день/днём/полдень) -> 12:00,
+        'v' (вечер) -> 17:00, 'g' (ночь) -> 23:00. The resulting period is fixed at
+        TIME_UNCERTAIN; only the part-of-day word slot is replaced, adjacent dates
+        and prepositions stay in place.
+
+        Returns:
+            True when a date marker was present, otherwise False.
+        """
         if (match.group(1) is not None) or (match.group(3) is not None):
             hours = 0
             m = match.group(2)

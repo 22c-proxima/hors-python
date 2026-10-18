@@ -1,3 +1,4 @@
+"""Public model classes of the parser: tokens, periods and the parse result."""
 from .abstract_period import AbstractPeriod
 from .dates_raw_data import DatesRawData
 from .hors_parse_result import HorsParseResult

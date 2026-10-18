@@ -1,3 +1,7 @@
+"""
+Recognizer for relative day words ('сегодня', 'вчера', 'послезавтра').
+"""
+
 from datetime import datetime, timedelta
 
 from .recognizer import Recognizer
@@ -7,9 +11,20 @@ from .recognizer import Recognizer
 
 
 class RelativeDayRecognizer(Recognizer):
+    """
+    Recognizes relative day words mapped to pattern chars '2'..'6':
+    'позавчера' (2), 'вчера' (3), 'сегодня' (4), 'завтра' (5), 'послезавтра' (6).
+    """
     regex_pattern = r'[2-6]'
 
     def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+        """
+        Shift `now` by the day offset encoded in the pattern char (char - 4, i.e. -2..+2)
+        and fix the period down to DAY.
+
+        Returns:
+            True (the match is always consumed).
+        """
         try:
             relative_day = int(match.group(0))
         except ValueError:

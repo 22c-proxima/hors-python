@@ -1,3 +1,8 @@
+"""
+Core parsing pipeline: tokenize the phrase, run every recognizer over the token
+pattern, merge adjacent/overlapping periods and materialize them into DateTimeTokens.
+"""
+
 from typing import List, Tuple, Set
 from datetime import datetime, timedelta
 from re import compile

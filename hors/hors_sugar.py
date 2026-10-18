@@ -1,3 +1,7 @@
+"""
+Public API of the library: process_phrase() and its text preprocessing helpers.
+"""
+
 from datetime import datetime
 from typing import Optional
 from re import sub
@@ -102,7 +106,8 @@ def process_phrase(phrase: str, now: Optional[datetime] = None) -> HorsParseResu
     Returns:
         A HorsParseResult with:
           - source_text: the input phrase as received;
-          - tokens: the non-date words of the phrase, in order;
+          - tokens: the phrase tokens in order, where each matched date region is
+            replaced by a placeholder entry like '{0}' (one per kept date);
           - text: the phrase with date expressions removed (cleaned remainder);
           - dates: list of DateTimeToken objects, each carrying type
             (FIXED / PERIOD / SPAN_FORWARD / SPAN_BACKWARD), date_from, date_to,

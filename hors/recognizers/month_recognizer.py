@@ -1,3 +1,7 @@
+"""
+Recognizer for month names ('в мае', 'в прошлом мае').
+"""
+
 from datetime import datetime
 
 from .recognizer import Recognizer
@@ -9,9 +13,23 @@ from .recognizer import Recognizer
 
 
 class MonthRecognizer(Recognizer):
+    """
+    Recognizes month words ('M'), optionally preceded by a relative mode word:
+    's' прошлый, 'u' этот/текущий, 'y' ближайший/грядущий, 'x' следующий.
+    """
     regex_pattern = r'([usxy])?M'
 
     def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+        """
+        Resolve a month name to the first day of that month in the right year.
+
+        'прошлый' ('s') moves the year back when the month is not already past;
+        'ближайший' ('y') moves it forward when the month is past; 'следующий' ('x')
+        moves it forward unless the month is still ahead in the current year.
+
+        Returns:
+            True (the match is always consumed).
+        """
         year = now.year
         year_fixed = False
         s, e = match.span()

@@ -14,7 +14,8 @@
     "vscode": {
       "extensions": [
         "ms-vscode.vscode-chat-customizations-evaluations",
-        "MS-CEINTL.vscode-language-pack-ru"
+        "MS-CEINTL.vscode-language-pack-ru",
+        "saoudrizwan.claude-dev"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/python/current/bin/python"

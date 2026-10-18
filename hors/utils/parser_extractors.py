@@ -1,3 +1,18 @@
+"""
+Maps raw tokens to the one-character pattern codes that recognizers' regexes are built from.
+
+Pattern characters produced by ParserExtractors.create_pattern_from:
+    Y - year word ('год'), M - month name, D - weekday name;
+    b - 'назад', l - 'спустя', i - 'через', W - 'выходной';
+    e/h/d/w/m - minute/hour/day/week/month period words;
+    s/u/y/x - previous/current/current-next/next relative modes;
+    2..6 - two-days-ago .. day-after-tomorrow (3 today, 4 tomorrow);
+    r/n/a/v/g - morning/noon/daytime/evening/night;
+    Q/H - quarter/half of an hour;
+    1 - number > 1900 (a full year), 0 - any other non-negative number, _ - negative or unknown;
+    f/t/o - 'в|с' / 'до|по' / 'на'; # - 'число'; N - conjunction 'и'.
+"""
+
 from typing import Dict, Optional
 from re import sub
 
@@ -10,6 +25,7 @@ from ..models.parser_models import (
 )
 
 
+# Period word -> pattern character.
 PERIOD_MAPPING: Dict[Period, str] = {
     Period.MINUTE: 'e',
     Period.HOUR:   'h',
@@ -18,6 +34,7 @@ PERIOD_MAPPING: Dict[Period, str] = {
     Period.MONTH:  'm'
 }
 
+# Relative mode word -> pattern character.
 RELATIVE_MODE_MAPPING: Dict[RelativeMode, str] = {
     RelativeMode.PREVIOUS:     's',
     RelativeMode.CURRENT:      'u',
@@ -25,6 +42,7 @@ RELATIVE_MODE_MAPPING: Dict[RelativeMode, str] = {
     RelativeMode.NEXT:         'x'
 }
 
+# Part-of-day word -> pattern character.
 DAYTIME_MAPPING: Dict[DayTime, str] = {
     DayTime.MORNING: 'r',
     DayTime.NOON:    'n',
@@ -33,6 +51,7 @@ DAYTIME_MAPPING: Dict[DayTime, str] = {
     DayTime.NIGHT:   'g'
 }
 
+# Fraction-of-an-hour word -> pattern character.
 PARTTIME_MAPPING: Dict[PartTime, str] = {
     PartTime.QUARTER: 'Q',
     PartTime.HALF:    'H'
@@ -40,9 +59,19 @@ PARTTIME_MAPPING: Dict[PartTime, str] = {
 
 
 class ParserExtractors:
+    """Converts a single token into its one-character pattern code (see module docstring)."""
 
     @staticmethod
     def create_pattern_from(token: str) -> str:
+        """
+        Reduce a token to a single pattern character.
+
+        Checks, in order: year/month/weekday words, 'назад'/'спустя'/'через',
+        'выходной', period words, relative modes, neighbour-day words (сегодня etc.),
+        parts of day, hour fractions, then the numeric value itself ('1' for numbers
+        above 1900, '0' otherwise, '_' for negatives), prepositions, 'число' and
+        finally 'N' for 'и' / '_' for anything unrecognized.
+        """
         t = sub(r'[^0-9а-яё-]', '', token.lower()).strip()
 
         if Morph.has_one_of_lemmas(t, Keywords.YEAR):
@@ -104,6 +133,7 @@ class ParserExtractors:
 
 
 def period_from(t: str) -> Optional[Period]:
+    """Map a token to the Period it names (minute/hour/day/week/month), None if none."""
     if Morph.has_one_of_lemmas(t, Keywords.YEAR):
         return Period.YEAR
     if Morph.has_one_of_lemmas(t, Keywords.MONTH):
@@ -120,6 +150,7 @@ def period_from(t: str) -> Optional[Period]:
 
 
 def relative_mode_from(t: str) -> Optional[RelativeMode]:
+    """Map a token to the RelativeMode it names (current/next/previous/current-next)."""
     if Morph.has_one_of_lemmas(t, Keywords.CURRENT):
         return RelativeMode.CURRENT
     if Morph.has_one_of_lemmas(t, Keywords.NEXT):
@@ -132,6 +163,7 @@ def relative_mode_from(t: str) -> Optional[RelativeMode]:
 
 
 def neighbour_days_from(t: str) -> Optional[int]:
+    """Map today/yesterday-ish words to an offset in days from today (-2..+2)."""
     if Morph.has_one_of_lemmas(t, Keywords.TOMORROW):
         return 1
     if Morph.has_one_of_lemmas(t, Keywords.TODAY):
@@ -146,6 +178,7 @@ def neighbour_days_from(t: str) -> Optional[int]:
 
 
 def daytime_from(t: str) -> Optional[DayTime]:
+    """Map a part-of-day word (утро/полдень/днём/вечер/ночь) to DayTime."""
     if Morph.has_one_of_lemmas(t, Keywords.NOON):
         return DayTime.NOON
     if Morph.has_one_of_lemmas(t, Keywords.MORNING):
@@ -160,6 +193,7 @@ def daytime_from(t: str) -> Optional[DayTime]:
 
 
 def parttime_from(t: str) -> Optional[PartTime]:
+    """Map a fraction-of-an-hour word (четверть/половина) to PartTime."""
     if Morph.has_one_of_lemmas(t, Keywords.QUARTER):
         return PartTime.QUARTER
     if Morph.has_one_of_lemmas(t, Keywords.HALF):

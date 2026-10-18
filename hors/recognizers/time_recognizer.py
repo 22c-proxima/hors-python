@@ -1,3 +1,7 @@
+"""
+Recognizer for clock-time phrases ('в 3 часа', '9 вечера').
+"""
+
 from datetime import datetime, timedelta
 
 from .recognizer import Recognizer
@@ -7,9 +11,37 @@ from .recognizer import Recognizer
 
 
 class TimeRecognizer(Recognizer):
+    """
+    Recognizes clock-time phrases (pattern ([rvgd])?([fot])?(Q|H)?(h|(0)(h)?)((0)e?)?([rvgd])?):
+    an optional part-of-day word, a preposition ('в'/'с'/'на'/'до'/'по'), 'четверть/половина',
+    an hour number or the word 'час'/'ч', an optional minute number and an optional
+    trailing part-of-day word.
+
+    Examples: 'в 3 часа', '9 вечера', '24'.
+    """
     regex_pattern = r'([rvgd])?([fot])?(Q|H)?(h|(0)(h)?)((0)e?)?([rvgd])?'
 
     def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+        """
+        Convert a matched time phrase into a TIME period.
+
+        Hours are taken from the explicit number (group 5) or default to 1 for
+        'четверть/половина часа' phrases; minutes come from the trailing number
+        (group 8, 0..59) or from quarter/half: Q -> :15 of the previous hour,
+        H -> :30.
+
+        Values above 12 are taken as-is (FixPeriod.TIME). Otherwise a part-of-day
+        word pins the time: 'вечер' adds 12 when hours <= 11, 'ночь' adds 12 when
+        hours >= 10, 'днём' adds 12 when hours <= 4; 24 wraps to 0.
+
+        If the phrase started with 'до/по', that token is returned to the stream so
+        a time range ('с 5 до 7') can be built later. All matched slots are replaced
+        by a single date.
+
+        Returns:
+            True when an hour could be determined, otherwise False (the match is
+            left for other recognizers).
+        """
         if match.group(5) is not None or match.group(6) is not None or match.group(4) is not None or match.group(1) is not None or match.group(9):
             if match.group(5) is None:
                 part_of_day = match.group(9) if match.group(9) is not None else (match.group(1) or '')

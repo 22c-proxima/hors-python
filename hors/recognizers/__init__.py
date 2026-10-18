@@ -1,3 +1,10 @@
+"""All date-expression recognizers, in execution priority order.
+
+HorsTextParser runs the list `recognizers` one after another against the same
+DatesRawData; each recognizer claims its own regex matches and turns them into
+AbstractPeriod slots, so earlier entries win over later ones when two
+recognizers could match the same words.
+"""
 from typing import List
 
 from .recognizer import Recognizer

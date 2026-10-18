@@ -1,3 +1,7 @@
+"""
+Recognizer for numeric dates: one or more day numbers followed by a month word or the '#' marker.
+"""
+
 from typing import List
 from datetime import datetime
 
@@ -10,9 +14,25 @@ from .recognizer import Recognizer
 
 
 class DaysMonthRecognizer(Recognizer):
+    """
+    Recognizes one or more day numbers followed by a month word or the '#' marker:
+    '1 мая', '3 и 5 июня' (pattern ((0N?)+)(M|#)).
+    """
     regex_pattern = r'((0N?)+)(M|#)'
 
     def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+        """
+        Create one period per numeric token before the month word.
+
+        Each day is placed in the matched month of the current year (the current
+        month when no month word was found). Every period is fixed at WEEK+DAY and
+        additionally MONTH when a month word was explicit. When the month is not
+        fixed, a day that would land after an earlier created one is shifted into
+        the next month.
+
+        Returns:
+            True (the match is always consumed).
+        """
         dates: List[AbstractPeriod] = []
         month_fixed = False
         s, e = match.span()

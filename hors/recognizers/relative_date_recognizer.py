@@ -1,3 +1,7 @@
+"""
+Recognizer for 'relative mode + period word' pairs ('прошлый год', 'следующий месяц').
+"""
+
 from datetime import datetime, timedelta
 
 from .recognizer import Recognizer
@@ -7,9 +11,24 @@ from .recognizer import Recognizer
 
 
 class RelativeDateRecognizer(Recognizer):
+    """
+    Recognizes 'relative mode + period word' pairs (pattern [usxy][Ymwd]):
+    'следующий год', 'прошлый месяц', 'эту неделю', 'будущий день'.
+    """
     regex_pattern = r'([usxy])([Ymwd])'
 
     def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+        """
+        Shift the current year/month/week/day by one period in the given direction.
+
+        'y' (ближайший) and 'x' (следующий) shift forward, 's' (прошлый) backward,
+        'u' (этот/текущий) keeps the same period. The unit is taken from the second
+        slot: 'Y' year, 'm' month, 'w' week (+/- 7 days), 'd' day; the fix level
+        matches the unit (YEAR / down to MONTH / WEEK / DAY).
+
+        Returns:
+            True (the match is always consumed).
+        """
         date = AbstractPeriod()
         direction = 0
         m = match.group(1)

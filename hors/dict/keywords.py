@@ -1,7 +1,15 @@
+"""
+Lemmas of every date/time word the parser understands, grouped by meaning.
+
+Each constant is a list of word forms (full and abbreviated) that share the
+same meaning; recognizers match tokens against these lists via Morph.
+"""
+
 from typing import List
 
 
 class Keywords:
+    """Lemma groups for all keywords recognized by the parser."""
 
     AFTER             = ['через']
     AFTER_POSTFIX     = ['спустя']
@@ -66,6 +74,7 @@ class Keywords:
 
     @staticmethod
     def months() -> List[List[str]]:
+        """All month lemma lists in calendar order (January..December)."""
         return [
             Keywords.JANUARY,
             Keywords.FEBRUARY,
@@ -83,6 +92,7 @@ class Keywords:
 
     @staticmethod
     def days_of_week() -> List[List[str]]:
+        """All weekday lemma lists, Monday..Sunday."""
         return [
             Keywords.MONDAY,
             Keywords.TUESDAY,

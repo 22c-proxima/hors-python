@@ -1,3 +1,7 @@
+"""
+Recognizer for weekday names ('во вторник', 'в прошлую пятницу').
+"""
+
 from datetime import datetime, timedelta
 
 from .recognizer import Recognizer
@@ -9,9 +13,25 @@ from .recognizer import Recognizer
 
 
 class DayOfWeekRecognizer(Recognizer):
+    """
+    Recognizes weekday names ('D'), optionally preceded by a relative mode word:
+    's' прошлый, 'u' этот/текущий, 'y' ближайший/грядущий, 'x' следующий.
+    """
     regex_pattern = r'([usxy])?(D)'
 
     def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+        """
+        Resolve a weekday name to an absolute date relative to `now`.
+
+        Without a prefix the nearest matching weekday is taken (it may be today
+        or in the past); 'ближайший' ('y') forces strictly ahead (diff += 7 when
+        negative), 'следующий' ('x') adds +7 days, 'прошлый' ('s') subtracts 7.
+        The period is fixed down to DAY and flagged with fix_day_of_week so later
+        merges keep the weekday semantics.
+
+        Returns:
+            True (the match is always consumed).
+        """
         date = AbstractPeriod()
         day_of_week = ParserUtils.find_index(data.tokens[match.start(2)].value, Keywords.days_of_week()) + 1
         now_day_of_week = now.weekday() + 1
