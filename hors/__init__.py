@@ -8,7 +8,7 @@ Public entry point: process_phrase(phrase, now=None) -> HorsParseResult.
 from .hors_sugar import process_phrase
 
 
-VERSION = '0.1.6'
+VERSION = '0.1.7'
 
 __all__ = [
     'process_phrase',
