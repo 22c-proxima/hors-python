@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from .recognizer import Recognizer
 from ..models import AbstractPeriod, DatesRawData
 from ..models.parser_models import FixPeriod
+from ..utils import ParserUtils
 from .recognizer import Recognizer
 
 
@@ -27,8 +28,10 @@ class TimeSpanRecognizer(Recognizer):
         The offset starts at `now` and each unit shifts it forward (or backward for
         'назад'): 'Y' years, 'm' months, 'w' weeks, 'd' days, 'h' hours, 'e' minutes;
         the fix level tightens as units get smaller (MONTH -> WEEK -> DAY -> TIME).
-        The resulting period carries span = offset - now and its date is the end of
-        the span; all matched slots are replaced by it.
+        Month offsets are normalized across year boundaries, and both the resulting
+        day and year are clamped into their valid ranges. The resulting period
+        carries span = offset - now and its date is the end of the span; all
+        matched slots are replaced by it.
 
         Returns:
             True when exactly one of 'через' / postfix is present, otherwise False.
@@ -51,11 +54,18 @@ class TimeSpanRecognizer(Recognizer):
                     except ValueError:
                         last_number = 0
                 elif l == 'Y':
-                    offset = offset.replace(year=offset.year + direction*last_number)
+                    new_year = max(1, min(9999, offset.year + direction*last_number))
+                    day = ParserUtils.get_day_valid_for_month(new_year, offset.month, offset.day)
+                    offset = offset.replace(year=new_year, day=day)
                     date.fix_down_to(FixPeriod.MONTH)
                     last_number = 1
                 elif l == 'm':
-                    offset = offset.replace(month=offset.month + direction*last_number)
+                    months = offset.month + direction*last_number
+                    year_delta, new_month = divmod(months - 1, 12)
+                    new_month += 1
+                    new_year = max(1, min(9999, offset.year + year_delta))
+                    day = ParserUtils.get_day_valid_for_month(new_year, new_month, offset.day)
+                    offset = offset.replace(year=new_year, month=new_month, day=day)
                     date.fix_down_to(FixPeriod.WEEK)
                     last_number = 1
                 elif l == 'w':

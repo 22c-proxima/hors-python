@@ -32,7 +32,8 @@ class TimeRecognizer(Recognizer):
 
         Values above 12 are taken as-is (FixPeriod.TIME). Otherwise a part-of-day
         word pins the time: 'вечер' adds 12 when hours <= 11, 'ночь' adds 12 when
-        hours >= 10, 'днём' adds 12 when hours <= 4; 24 wraps to 0.
+        hours >= 10, 'днём' adds 12 when hours <= 4; 24 wraps to 0. Hours outside
+        0..23 reject the match so the phrase is left for other recognizers.
 
         If the phrase started with 'до/по', that token is returned to the stream so
         a time range ('с 5 до 7') can be built later. All matched slots are replaced
@@ -49,6 +50,8 @@ class TimeRecognizer(Recognizer):
                     return False
 
             hours = 1 if match.group(5) is None else int(data.tokens[match.start(5)].value)
+            if hours == 24:
+                hours = 0
             if 0 <= hours <= 23:
                 minutes = 0
                 if match.group(8) is not None:
@@ -86,18 +89,16 @@ class TimeRecognizer(Recognizer):
                         if hours >= 10:
                             hours += 12
 
-                    if hours == 24:
-                        hours = 0
-
                 date.time = timedelta(seconds=hours*60*60 + minutes*60)
                 s, e = match.span()
                 to_time = data.tokens[s]
                 data.replace_tokens_by_dates(s, (e - s), date)
                 if match.group(2) == 't':
                     data.return_tokens(s, 't', to_time)
-            # if 0 <= hours <= 23:
 
-            return True
+                return True
+
+            return False
         #  if match.group(5) is not None or match.group(6) is not None or match.group(4) is not None or match.group(1) is not None or match.group(9):
 
         return False

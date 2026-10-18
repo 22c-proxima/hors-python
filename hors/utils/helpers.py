@@ -37,7 +37,7 @@ class Helpers:
             else:
                 break
 
-        return value[start_offset:end_offset]
+        return value[start_offset:len(value) + end_offset]
     # def trim_punctuation(value: str, leave_valid_symbols: bool = True):
 
     @staticmethod
