@@ -4,6 +4,7 @@ Recognizer for numeric dates: one or more day numbers followed by a month word o
 
 from typing import List
 from datetime import datetime
+from re import Match
 
 from .recognizer import Recognizer
 from ..dict import Keywords
@@ -20,7 +21,7 @@ class DaysMonthRecognizer(Recognizer):
     """
     regex_pattern = r'((0N?)+)(M|#)'
 
-    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Create one period per numeric token before the month word.
 

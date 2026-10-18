@@ -3,7 +3,7 @@ Data models shared between the parser and the recognizers: fix/period enums,
 token types and the DateTimeToken result object.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 from enum import Enum, auto
 
@@ -112,10 +112,10 @@ class DateTimeToken(IHasEdges):
     start/end (inherited from IHasEdges) are character offsets into the source
     phrase, so source_text[start:end] is the exact matched expression.
     """
-    type: DateTimeTokenType = None
+    type: Optional[DateTimeTokenType] = None
     date_from: datetime = datetime.now()
     date_to: datetime = datetime.now()
-    span: timedelta = None
+    span: Optional[timedelta] = None
     has_time: bool = False
 
     __duplicate_group: int = -1
@@ -138,7 +138,7 @@ class DateTimeToken(IHasEdges):
             'end': self.end
         }
 
-    def overlapping_with(self, other) -> bool:
+    def overlapping_with(self, other: "DateTimeToken") -> bool:
         """
         Check whether this token overlaps another one in the source phrase.
 

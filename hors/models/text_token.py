@@ -9,7 +9,7 @@ class TextToken(IHasEdges):
     """A single word (or punctuation mark) of the phrase with its position in the source text."""
     value: str
 
-    def __init__(self, value: str, start: int = 0, end: int = 0):
+    def __init__(self, value: str, start: int = 0, end: int = 0) -> None:
         """
         Args:
             value: The token text.

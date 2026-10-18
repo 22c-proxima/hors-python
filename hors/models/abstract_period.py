@@ -90,7 +90,7 @@ class AbstractPeriod(IHasEdges):
         """
         Clear one resolution level from `fixed`.
         """
-        self.fixed &= ~time
+        self.fixed &= ~time.value
 
     def fix_down_to(self, period: FixPeriod) -> None:
         """
@@ -103,7 +103,7 @@ class AbstractPeriod(IHasEdges):
                 return
             self.fix(to_fix)
 
-    def copy(self):
+    def copy(self) -> "AbstractPeriod":
         """
         Returns:
             A deep copy of this period.

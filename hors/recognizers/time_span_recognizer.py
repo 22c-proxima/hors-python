@@ -3,6 +3,7 @@ Recognizer for duration phrases ('через 2 дня', 'час назад').
 """
 
 from datetime import datetime, timedelta
+from re import Match
 
 from .recognizer import Recognizer
 from ..models import AbstractPeriod, DatesRawData
@@ -21,7 +22,7 @@ class TimeSpanRecognizer(Recognizer):
     """
     regex_pattern = r'(i)?((0?[Ymwdhe]N?)+)([bl])?'
 
-    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Build a span period from a sequence of number + period-word pairs.
 

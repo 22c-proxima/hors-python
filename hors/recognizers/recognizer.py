@@ -6,7 +6,7 @@ match into AbstractPeriod slots inside DatesRawData.
 """
 from typing import List, Set, Callable, Any
 from datetime import datetime
-from re import finditer
+from re import finditer, Match
 
 from ..models import DatesRawData
 
@@ -32,7 +32,7 @@ class Recognizer:
     """
     regex_pattern: str
 
-    def parse_match(self, data: DatesRawData, match, now: datetime):
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Handle one regex hit in the pattern string.
 
@@ -44,7 +44,7 @@ class Recognizer:
         Returns:
             True when the matched slots were consumed (replaced by dates).
         """
-        pass
+        return False
 
     def parse_tokens(self, data: DatesRawData, now: datetime) -> None:
         """

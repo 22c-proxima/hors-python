@@ -3,9 +3,9 @@ Core parsing pipeline: tokenize the phrase, run every recognizer over the token
 pattern, merge adjacent/overlapping periods and materialize them into DateTimeTokens.
 """
 
-from typing import List, Tuple, Set
+from typing import List, Tuple, Set, cast
 from datetime import datetime, timedelta
-from re import compile
+from re import compile, Match
 from random import randint
 from sys import maxsize
 
@@ -126,8 +126,8 @@ def take_from_adjacent_i(data: DatesRawData, first_index: int, second_index: int
     Returns:
         The merged pair as (data.dates[first_index], data.dates[second_index]).
     """
-    first_date = data.dates[first_index]
-    second_date = data.dates[second_index]
+    first_date = cast(AbstractPeriod, data.dates[first_index])
+    second_date = cast(AbstractPeriod, data.dates[second_index])
     first_copy = first_date.copy()
     second_copy = second_date.copy()
     first_copy.fixed &= ~second_date.fixed
@@ -146,10 +146,10 @@ def take_from_adjacent_i(data: DatesRawData, first_index: int, second_index: int
         data.dates[second_index] = first_copy
         first_copy.start = second_date.start
         first_copy.end = second_date.end
-    return (data.dates[first_index], data.dates[second_index])
+    return (cast(AbstractPeriod, data.dates[first_index]), cast(AbstractPeriod, data.dates[second_index]))
 
 
-def take_from_adjacent(match, data: DatesRawData, _, is_linked: bool) -> bool:
+def take_from_adjacent(match: Match[str], data: DatesRawData, now: datetime, is_linked: bool) -> bool:
     """
     Recognizer callback: merge the two periods matched by a start/end-periods pattern.
 
@@ -183,7 +183,7 @@ def fix_indexes(final_periods: List[DateTimeToken], split_tokens: ITuplesList) -
                 period.end += item2 - 1
 
 
-def create_date_period(match, data: DatesRawData, now: datetime, final_periods: List[DateTimeToken]) -> bool:
+def create_date_period(match: Match[str], data: DatesRawData, now: datetime, final_periods: List[DateTimeToken]) -> bool:
     """
     Materialize a matched pattern region into a final DateTimeToken and splice it back into the data.
 
@@ -232,7 +232,7 @@ def create_date_period(match, data: DatesRawData, now: datetime, final_periods: 
         date_to_save.type = DateTimeTokenType.PERIOD
         date_to_save.has_time = from_token.has_time or to_token.has_time
     else:
-        single_date = data.dates[match.start(6)]
+        single_date = cast(AbstractPeriod, data.dates[match.start(6)])
         date_to_save = convert_to_token(single_date, now)
     # if match.group(3) is not None and match.group(4) is not None:
 
@@ -252,7 +252,7 @@ def create_date_period(match, data: DatesRawData, now: datetime, final_periods: 
 # def create_date_period(match, data: DatesRawData, now: datetime, final_periods: List[DateTimeToken]) -> bool:
 
 
-def collapse_dates(match, data: DatesRawData, _, is_linked: bool) -> bool:
+def collapse_dates(match: Match[str], data: DatesRawData, now: datetime, is_linked: bool) -> bool:
     """
     Recognizer callback: fold two adjacent matched periods into one.
 
@@ -263,8 +263,8 @@ def collapse_dates(match, data: DatesRawData, _, is_linked: bool) -> bool:
     Returns:
         True if a collapse happened (match consumed), False otherwise.
     """
-    first_date = data.dates[match.start(2)]
-    second_date = data.dates[match.start(5)]
+    first_date = cast(AbstractPeriod, data.dates[match.start(2)])
+    second_date = cast(AbstractPeriod, data.dates[match.start(5)])
     if not AbstractPeriod.can_collapse(first_date, second_date):
         return False
 
@@ -279,7 +279,7 @@ def collapse_dates(match, data: DatesRawData, _, is_linked: bool) -> bool:
     return True
 
 
-def collapse_closest(match, data: DatesRawData, _, is_linked: bool) -> bool:
+def collapse_closest(match: Match[str], data: DatesRawData, now: datetime, is_linked: bool) -> bool:
     """
     Recognizer callback: merge two periods separated by at most `collapse_distance` characters.
 
@@ -291,8 +291,8 @@ def collapse_closest(match, data: DatesRawData, _, is_linked: bool) -> bool:
     Returns:
         False — the match is skipped by the matcher after processing.
     """
-    first_date = data.dates[match.start(1)]
-    second_date = data.dates[match.start(2)]
+    first_date = cast(AbstractPeriod, data.dates[match.start(1)])
+    second_date = cast(AbstractPeriod, data.dates[match.start(2)])
     if AbstractPeriod.can_collapse(first_date, second_date):
         first_start, first_end, second_start, second_end = first_date.start, first_date.end, second_date.start, second_date.end
         if first_date.min_fixed().value > second_date.min_fixed().value:

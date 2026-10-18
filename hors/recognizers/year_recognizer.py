@@ -3,6 +3,7 @@ Recognizer for year numbers ('в 2024 году', '1985').
 """
 
 from datetime import datetime
+from re import Match
 
 from .recognizer import Recognizer
 from ..models import AbstractPeriod, DatesRawData
@@ -21,7 +22,7 @@ class YearRecognizer(Recognizer):
     """
     regex_pattern = r'(1)Y?|(0)Y'
 
-    def parse_match(self, data: DatesRawData, match, _) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Build a period fixed at YEAR from the matched numeric token.
 

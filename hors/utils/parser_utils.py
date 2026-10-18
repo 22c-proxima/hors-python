@@ -29,6 +29,7 @@ class ParserUtils:
             return 1900 + n
         return n if n >= 1000 else n + 2000
 
+    @staticmethod
     def get_day_valid_for_month(year: int, month: int, day: int) -> int:
         """Clamp day into [1, days_in_month(year, month)]."""
         _, days_in_month = monthrange(year, month)

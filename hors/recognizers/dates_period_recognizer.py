@@ -3,6 +3,7 @@ Recognizer for date-range expressions ('с N по N <месяц>', 'N до N-г�
 """
 
 from datetime import datetime
+from re import Match
 
 from ..dict import Keywords
 from ..models import AbstractPeriod, DatesRawData
@@ -22,7 +23,7 @@ class DatesPeriodRecognizer(Recognizer):
     """
     regex_pattern = r'f?(0)[ot]0(M|#)'
 
-    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Keep only the first day of the matched range as a period.
 

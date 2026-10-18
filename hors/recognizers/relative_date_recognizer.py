@@ -3,6 +3,7 @@ Recognizer for 'relative mode + period word' pairs ('прошлый год', 'с
 """
 
 from datetime import datetime, timedelta
+from re import Match
 
 from .recognizer import Recognizer
 from ..models import AbstractPeriod, DatesRawData
@@ -17,7 +18,7 @@ class RelativeDateRecognizer(Recognizer):
     """
     regex_pattern = r'([usxy])([Ymwd])'
 
-    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Shift the current year/month/week/day by one period in the given direction.
 

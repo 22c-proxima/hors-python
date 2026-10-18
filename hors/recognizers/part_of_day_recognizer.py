@@ -2,7 +2,8 @@
 Recognizer for part-of-day words adjacent to a date ('сегодня вечером').
 """
 
-from datetime import timedelta
+from datetime import datetime, timedelta
+from re import Match
 
 from .recognizer import Recognizer
 from ..models import AbstractPeriod, DatesRawData
@@ -20,7 +21,7 @@ class PartOfDayRecognizer(Recognizer):
     """
     regex_pattern = r'(@)?f?([ravgdn])f?(@)?'
 
-    def parse_match(self, data: DatesRawData, match, _) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Pin a part-of-day word to a representative hour of the day.
 

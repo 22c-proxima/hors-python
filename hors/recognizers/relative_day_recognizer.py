@@ -3,6 +3,7 @@ Recognizer for relative day words ('сегодня', 'вчера', 'послез
 """
 
 from datetime import datetime, timedelta
+from re import Match
 
 from .recognizer import Recognizer
 from ..models import AbstractPeriod, DatesRawData
@@ -17,7 +18,7 @@ class RelativeDayRecognizer(Recognizer):
     """
     regex_pattern = r'[2-6]'
 
-    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Shift `now` by the day offset encoded in the pattern char (char - 4, i.e. -2..+2)
         and fix the period down to DAY.

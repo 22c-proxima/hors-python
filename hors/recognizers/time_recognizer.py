@@ -3,6 +3,7 @@ Recognizer for clock-time phrases ('в 3 часа', '9 вечера').
 """
 
 from datetime import datetime, timedelta
+from re import Match
 
 from .recognizer import Recognizer
 from ..models import AbstractPeriod, DatesRawData
@@ -21,7 +22,7 @@ class TimeRecognizer(Recognizer):
     """
     regex_pattern = r'([rvgd])?([fot])?(Q|H)?(h|(0)(h)?)((0)e?)?([rvgd])?'
 
-    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Convert a matched time phrase into a TIME period.
 

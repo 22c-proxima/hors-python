@@ -5,7 +5,7 @@ Maps every inflected word form to its normal (lemma) form; the data is
 loaded from time_words.txt at import time and queried by the recognizers.
 """
 
-from typing import List, Dict, Tuple, Optional, Union
+from typing import List, Dict, Tuple, Optional, Union, Sequence, cast
 from enum import Enum
 from os.path import join, dirname
 
@@ -51,12 +51,12 @@ class Morph:
         return normal_form is not None and normal_form == lemma
 
     @staticmethod
-    def has_one_of_lemmas(word: str, lemmas: List[Union[str, List[str]]]) -> bool:
+    def has_one_of_lemmas(word: str, lemmas: Sequence[Union[str, Sequence[str]]]) -> bool:
         """Check whether word matches any of the given lemmas (or nested lemma lists)."""
         if isinstance(lemmas[0], list):
             return any(Morph.has_one_of_lemmas(word, sublist) for sublist in lemmas)
         else:
-            return any(Morph.has_lemma(word, lemma) for lemma in lemmas)
+            return any(Morph.has_lemma(word, lemma) for lemma in cast(List[str], lemmas))
 
 # class Morph:
 

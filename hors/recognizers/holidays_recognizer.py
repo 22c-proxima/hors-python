@@ -2,6 +2,9 @@
 Recognizer for weekend words ('выходной', 'на выходных').
 """
 
+from datetime import datetime
+from re import Match
+
 from .recognizer import Recognizer
 from ..dict import Keywords, Morph, LemmaSearchOptions
 from ..models import DatesRawData, TextToken
@@ -15,7 +18,7 @@ class HolidaysRecognizer(Recognizer):
     """
     regex_pattern = r'W'
 
-    def parse_match(self, data: DatesRawData, match, _) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Replace the single 'W' slot with plain weekday word tokens.
 

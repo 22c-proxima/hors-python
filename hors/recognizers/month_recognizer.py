@@ -3,6 +3,7 @@ Recognizer for month names ('в мае', 'в прошлом мае').
 """
 
 from datetime import datetime
+from re import Match
 
 from .recognizer import Recognizer
 from ..dict import Keywords
@@ -19,7 +20,7 @@ class MonthRecognizer(Recognizer):
     """
     regex_pattern = r'([usxy])?M'
 
-    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Resolve a month name to the first day of that month in the right year.
 

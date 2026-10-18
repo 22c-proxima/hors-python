@@ -2,7 +2,7 @@
 Misc small utilities: punctuation trimming for the final text and list manipulation.
 """
 
-from typing import List
+from typing import Any, List
 from string import punctuation
 
 
@@ -41,6 +41,6 @@ class Helpers:
     # def trim_punctuation(value: str, leave_valid_symbols: bool = True):
 
     @staticmethod
-    def swap_two(l: List, first_index: int, second_index: int) -> None:
+    def swap_two(l: List[Any], first_index: int, second_index: int) -> None:
         """Swap two elements of a list in place."""
         l[first_index], l[second_index] = l[second_index], l[first_index]

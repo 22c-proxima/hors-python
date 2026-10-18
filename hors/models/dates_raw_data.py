@@ -3,7 +3,7 @@ DatesRawData — working state of one parsing pass: the phrase split into slots
 that recognizers rewrite and query by pattern.
 """
 
-from typing import List
+from typing import List, Optional
 
 from ..utils.parser_extractors import ParserExtractors
 from .abstract_period import AbstractPeriod
@@ -28,9 +28,9 @@ class DatesRawData:
     """
     tokens: List[TextToken]
     pattern: str
-    dates: List[AbstractPeriod]
+    dates: List[Optional[AbstractPeriod]]
 
-    def __init__(self, tokens) -> None:
+    def __init__(self, tokens: List[str]) -> None:
         """
         Create empty state for a phrase.
 

@@ -3,6 +3,7 @@ Recognizer for weekday names ('во вторник', 'в прошлую пятн
 """
 
 from datetime import datetime, timedelta
+from re import Match
 
 from .recognizer import Recognizer
 from ..dict import Keywords
@@ -19,7 +20,7 @@ class DayOfWeekRecognizer(Recognizer):
     """
     regex_pattern = r'([usxy])?(D)'
 
-    def parse_match(self, data: DatesRawData, match, now: datetime) -> bool:
+    def parse_match(self, data: DatesRawData, match: Match[str], now: datetime) -> bool:
         """
         Resolve a weekday name to an absolute date relative to `now`.
 
