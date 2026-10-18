@@ -15,6 +15,30 @@ RX_SPLIT = compile(r'[^а-яА-ЯёЁa-zA-Z0-9-]+')
 
 
 def convert_to_token(period: AbstractPeriod, now: datetime) -> DateTimeToken:
+    """
+    Materialize a raw period into a concrete DateTimeToken relative to `now`.
+
+    The period is first fixed down to its finest resolved component (min_fixed)
+    and anchored against the reference moment:
+      - MONTH-fixed periods are placed in the current year, rolling over to the
+        next one if that date has already passed;
+      - DAY-fixed periods ('во вторник') are moved to the next occurrence of
+        that weekday;
+      - TIME / TIME_UNCERTAIN-only periods are anchored to `now` itself.
+
+    The clock is taken from period.time when fixed, otherwise midnight. Token
+    type and bounds follow max_fixed: YEAR/MONTH/WEEK produce a PERIOD covering
+    the whole year/month/week, DAY/TIME produce a FIXED token for that day or
+    moment (TIME sets has_time). A non-zero span_direction overrides the type
+    to SPAN_FORWARD / SPAN_BACKWARD and carries period.span.
+
+    Args:
+        period: The raw period produced by recognizers; mutated in place.
+        now: Reference datetime against which relative parts are resolved.
+
+    Returns:
+        A DateTimeToken with start/end offsets and duplicate_group copied from `period`.
+    """
     min_fixed = period.min_fixed()
     period.fix_down_to(min_fixed)
     if min_fixed == FixPeriod.MONTH:
@@ -79,6 +103,24 @@ def convert_to_token(period: AbstractPeriod, now: datetime) -> DateTimeToken:
 
 
 def take_from_adjacent_i(data: DatesRawData, first_index: int, second_index: int, is_linked: bool) -> Tuple[AbstractPeriod, AbstractPeriod]:
+    """
+    Merge two adjacent raw periods in place so each absorbs the fixed components of the other.
+
+    Each side is masked to its own fixed parts, then collapse_two pulls the
+    missing components across — e.g. in 'с 1 мая по 3' the bare day inherits
+    month/year from the first endpoint. Mutates data.dates at both indices;
+    the second slot may be replaced by the merged copy when it is the finer
+    side of the pair.
+
+    Args:
+        data: Working set of raw dates being parsed; mutated in place.
+        first_index: Index of the first period in data.dates.
+        second_index: Index of the second period in data.dates.
+        is_linked: Whether the two periods are linked (affects time merging).
+
+    Returns:
+        The merged pair as (data.dates[first_index], data.dates[second_index]).
+    """
     first_date = data.dates[first_index]
     second_date = data.dates[second_index]
     first_copy = first_date.copy()
@@ -103,11 +145,30 @@ def take_from_adjacent_i(data: DatesRawData, first_index: int, second_index: int
 
 
 def take_from_adjacent(match, data: DatesRawData, _, is_linked: bool) -> bool:
+    """
+    Recognizer callback: merge the two periods matched by a start/end-periods pattern.
+
+    Delegates to take_from_adjacent_i for the periods at match groups 2 and 5.
+    Always returns False, so the matcher skips this match after the merge —
+    the spliced result is picked up later by create_date_period.
+    """
     take_from_adjacent_i(data, match.start(2), match.start(5), is_linked)
     return False
 
 
 def fix_indexes(final_periods: List[DateTimeToken], split_tokens: ITuplesList) -> None:
+    """
+    Re-map token offsets from the internal pattern space back to the original text.
+
+    The internal pattern counts every separator run as a single character, so
+    start/end offsets are off by (separator_length - 1) for everything after
+    each separator. For every separator match this shifts the period forward
+    when it starts after it, and stretches its end when it straddles it.
+
+    Args:
+        final_periods: Tokens to fix; mutated in place.
+        split_tokens: (position, length) of each separator run in the source text.
+    """
     for item1, item2 in split_tokens:
         for period in final_periods:
             if period.start > item1:
@@ -118,6 +179,29 @@ def fix_indexes(final_periods: List[DateTimeToken], split_tokens: ITuplesList) -
 
 
 def create_date_period(match, data: DatesRawData, now: datetime, final_periods: List[DateTimeToken]) -> bool:
+    """
+    Materialize a matched pattern region into a final DateTimeToken and splice it back into the data.
+
+    Two shapes are handled by the match:
+      - a range 'from X to Y' (groups 3 and 4 present): both endpoints are merged
+        via take_from_adjacent_i, converted with convert_to_token, and the end
+        is advanced — by day, week, month or year depending on its resolution —
+        until it reaches or passes the start;
+      - a single date (group 6): converted directly.
+
+    The token's text edges are resolved through data.edges_by_index, appended
+    to final_periods, and the matched region is replaced by a placeholder
+    TextToken '{i}' with the consumed dates removed from data.
+
+    Args:
+        match: Match of the period pattern inside the internal pattern string.
+        data: Working set of raw dates; mutated in place.
+        now: Reference datetime for resolving relative parts.
+        final_periods: Accumulator for finished tokens; appended to in place.
+
+    Returns:
+        True — the match is consumed by this pass.
+    """
     if match.group(3) is not None and match.group(4) is not None:
         from_date, to_date = take_from_adjacent_i(data, match.start(3), match.start(4), True)
         from_token = convert_to_token(from_date, now)
@@ -164,6 +248,16 @@ def create_date_period(match, data: DatesRawData, now: datetime, final_periods: 
 
 
 def collapse_dates(match, data: DatesRawData, _, is_linked: bool) -> bool:
+    """
+    Recognizer callback: fold two adjacent matched periods into one.
+
+    If can_collapse holds for the periods at match groups 2 and 5, the finer-
+    grained period absorbs the coarser one via collapse_two, its text edges are
+    unified, and the tokens between them are cut out of the pattern.
+
+    Returns:
+        True if a collapse happened (match consumed), False otherwise.
+    """
     first_date = data.dates[match.start(2)]
     second_date = data.dates[match.start(5)]
     if not AbstractPeriod.can_collapse(first_date, second_date):
@@ -181,6 +275,17 @@ def collapse_dates(match, data: DatesRawData, _, is_linked: bool) -> bool:
 
 
 def collapse_closest(match, data: DatesRawData, _, is_linked: bool) -> bool:
+    """
+    Recognizer callback: merge two periods separated by at most `collapse_distance` characters.
+
+    Catches near misses ('1 мая 3') that the direct-adjacency passes left apart:
+    the finer period absorbs the coarser one, both slots share a duplicate_group
+    (inherited from either side or freshly generated), and the original text
+    edges are restored after the merge.
+
+    Returns:
+        False — the match is skipped by the matcher after processing.
+    """
     first_date = data.dates[match.start(1)]
     second_date = data.dates[match.start(2)]
     if AbstractPeriod.can_collapse(first_date, second_date):
@@ -209,6 +314,13 @@ def collapse_closest(match, data: DatesRawData, _, is_linked: bool) -> bool:
 
 
 def fix_overlap(final_periods: List[DateTimeToken]) -> None:
+    """
+    Expand overlapping final tokens to their union span in place.
+
+    Tokens whose text ranges overlap form a cluster; every member of the cluster
+    is stretched to cover min(start)..max(end) of the whole cluster, so that
+    dates referring to the same phrase end up with identical edges.
+    """
     skipped: Set[DateTimeToken] = set()
     for period in final_periods:
         if period not in skipped:
@@ -223,12 +335,46 @@ def fix_overlap(final_periods: List[DateTimeToken]) -> None:
 
 
 def parse(text: str, now: datetime) -> HorsParseResult:
+    """
+    Parse raw text into structured date tokens (library entry point).
+
+    Splits `text` on non-alphanumeric runs via RX_SPLIT and delegates to do_parse.
+
+    Args:
+        text: The phrase to parse (already preprocessed by the caller, if any).
+        now: Reference datetime against which relative expressions are resolved.
+
+    Returns:
+        A HorsParseResult with tokens, cleaned text and resolved dates.
+    """
     tokens = RX_SPLIT.split(text)
     split_tokens = [(m.start(), m.end() - m.start()) for m in RX_SPLIT.finditer(text)]
     return do_parse(tokens, text, split_tokens, now)
 
 
 def do_parse(tokens: List[str], text: str, split_tokens: ITuplesList, now: datetime) -> HorsParseResult:
+    """
+    Core parsing pipeline over pre-split tokens.
+
+    Steps:
+      1. Build a DatesRawData pattern from the tokens and run every recognizer
+         to populate raw periods;
+      2. Fold adjacent periods (start/end patterns) and merge 'from X to Y'
+         pairs, then close remaining gaps of up to `collapse_distance` chars;
+      3. Materialize each surviving period into a final DateTimeToken via
+         create_date_period;
+      4. Fix overlapping token edges (fix_overlap) and re-map offsets onto the
+         original text (fix_indexes).
+
+    Args:
+        tokens: Text pieces produced by splitting on separators.
+        text: The full source phrase, kept for HorsParseResult.
+        split_tokens: (position, length) of each separator run in `text`.
+        now: Reference datetime against which relative expressions are resolved.
+
+    Returns:
+        A HorsParseResult with cleaned tokens/text and resolved dates.
+    """
     collapse_distance = 4
 
     data = DatesRawData(tokens)
